@@ -60,8 +60,6 @@ fn main() {
     valid_pos = false;
     event_loop
         .run(move |event, elwt| {
-            //            print!("\r");
-            //            let now = Instant::now();
             for pixel in pixels.frame_mut().chunks_exact_mut(4) {
                 pixel[0] = CLEAR_COLOR[0]; // R
                 pixel[1] = CLEAR_COLOR[1]; // G
@@ -73,18 +71,12 @@ fn main() {
             draw_square(
                 pixels.frame_mut(),
                 &window_size,
-                (apple_pos[0] * TILE_SIZE as u32),
-                (apple_pos[1] * TILE_SIZE as u32),
+                apple_pos[0] * TILE_SIZE as u32,
+                apple_pos[1] * TILE_SIZE as u32,
                 TILE_SIZE,
                 TILE_SIZE,
-                [255, 0, 0, 0],
+                RED1,
             );
-            /*
-            if snake.coords[0] < 14 && frame_count == 20 {
-                snake.coords[0] += 1;
-                frame_count = 0;
-            }
-            */
             pixels.render().unwrap();
             match event {
                 Event::WindowEvent {
@@ -143,7 +135,6 @@ fn main() {
                 },
                 _ => (),
             }
-            //            print!("{:?}fps", (1.0 / now.elapsed().as_secs_f32()) as u32);
             if wasd[0] {
                 current_dir = 'u';
             } else if wasd[1] {
@@ -184,6 +175,7 @@ fn main() {
                 }
                 if snake.coords == apple_pos {
                     snake.length += 1;
+                    println!("{}", snake.length);
                     snake.history.push_front(snake.coords);
                     while !valid_pos {
                         apple_pos[0] = rng.gen_range(0..15);
@@ -201,7 +193,7 @@ fn main() {
 }
 
 //const TESTCOLOR: [u8; 4] = [0, 27, 71, 0];
-const BLUE1: [u8; 4] = [25, 122, 154, 0];
+//const BLUE1: [u8; 4] = [25, 122, 154, 0];
 const PURPLE1: [u8; 4] = [131, 60, 169, 0];
 const RED1: [u8; 4] = [154, 25, 70, 0];
 
