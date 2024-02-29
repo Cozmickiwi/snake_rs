@@ -1,6 +1,7 @@
 use std::{cmp::min, collections::VecDeque};
 
 use pixels::{Pixels, SurfaceTexture};
+use rand::Rng;
 use winit::{
     dpi::{LogicalSize, PhysicalSize},
     event::{Event, WindowEvent},
@@ -23,8 +24,8 @@ struct Snake {
 fn main() {
     let mut snake = Snake {
         coords: [2, 5],
-        history: VecDeque::from([[1, 5], [1, 6], [1, 7], [1, 8]]),
-        length: 5,
+        history: VecDeque::new(),
+        length: 1,
     };
     let mut frame_count: u8 = 0;
     let event_loop = EventLoop::new().unwrap();
@@ -46,6 +47,17 @@ fn main() {
     println!("{}", window_size.width);
     let mut wasd: [bool; 4] = [false, false, false, false];
     let mut current_dir: char = 'r';
+    let mut rng = rand::thread_rng();
+    let mut valid_pos = false;
+    let mut apple_pos: [u32; 2] = [0, 0];
+    while !valid_pos {
+        apple_pos[0] = rng.gen_range(0..15);
+        apple_pos[1] = rng.gen_range(0..15);
+        if apple_pos != snake.coords && !snake.history.contains(&apple_pos) {
+            valid_pos = true;
+        }
+    }
+    valid_pos = false;
     event_loop
         .run(move |event, elwt| {
             //            print!("\r");
@@ -58,6 +70,15 @@ fn main() {
             }
             frame_count += 1;
             draw_snake(&snake, &window_size, pixels.frame_mut());
+            draw_square(
+                pixels.frame_mut(),
+                &window_size,
+                (apple_pos[0] * TILE_SIZE as u32),
+                (apple_pos[1] * TILE_SIZE as u32),
+                TILE_SIZE,
+                TILE_SIZE,
+                [255, 0, 0, 0],
+            );
             /*
             if snake.coords[0] < 14 && frame_count == 20 {
                 snake.coords[0] += 1;
@@ -132,7 +153,7 @@ fn main() {
             } else if wasd[3] {
                 current_dir = 'r';
             }
-            if frame_count == 15 {
+            if frame_count == 10 {
                 if snake.length > 1 {
                     snake.history.pop_back().unwrap();
                     snake.history.push_front(snake.coords);
@@ -157,6 +178,21 @@ fn main() {
                         panic!("You lose!");
                     }
                     snake.coords[0] += 1;
+                }
+                if snake.history.contains(&snake.coords) {
+                    panic!();
+                }
+                if snake.coords == apple_pos {
+                    snake.length += 1;
+                    snake.history.push_front(snake.coords);
+                    while !valid_pos {
+                        apple_pos[0] = rng.gen_range(0..15);
+                        apple_pos[1] = rng.gen_range(0..15);
+                        if apple_pos != snake.coords && !snake.history.contains(&apple_pos) {
+                            valid_pos = true;
+                        }
+                    }
+                    valid_pos = false;
                 }
                 frame_count = 0;
             }
