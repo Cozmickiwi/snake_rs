@@ -1,4 +1,4 @@
-use std::{cmp::min, f32::consts::PI, time::Instant};
+use std::{cmp::min, collections::VecDeque};
 
 use pixels::{Pixels, SurfaceTexture};
 use winit::{
@@ -11,23 +11,26 @@ use winit::{
 const SCREEN_WIDTH: u16 = 600;
 const SCREEN_HEIGHT: u16 = 600;
 //const HALF_HEIGHT: u16 = 450;
-const SCALE: u16 = 1;
+//const SCALE: u16 = 1;
 const CLEAR_COLOR: [u8; 3] = [0, 0, 0];
 
 struct Snake {
     coords: [u32; 2],
-    history: Vec<[u32; 2]>,
+    history: VecDeque<[u32; 2]>,
+    length: u8,
 }
 
 fn main() {
     let mut snake = Snake {
-        coords: [1, 5],
-        history: Vec::new(),
+        coords: [2, 5],
+        history: VecDeque::from([[1, 5], [1, 6], [1, 7], [1, 8]]),
+        length: 5,
     };
     let mut frame_count: u8 = 0;
     let event_loop = EventLoop::new().unwrap();
     let builder = WindowBuilder::new()
         .with_inner_size(LogicalSize::new(SCREEN_WIDTH, SCREEN_HEIGHT))
+        .with_title("Snake")
         .build(&event_loop)
         .unwrap();
     event_loop.set_control_flow(winit::event_loop::ControlFlow::Poll);
@@ -129,7 +132,11 @@ fn main() {
             } else if wasd[3] {
                 current_dir = 'r';
             }
-            if frame_count == 20 {
+            if frame_count == 15 {
+                if snake.length > 1 {
+                    snake.history.pop_back().unwrap();
+                    snake.history.push_front(snake.coords);
+                }
                 if current_dir == 'd' {
                     if snake.coords[1] == 0 {
                         panic!("You lose!");
@@ -198,10 +205,21 @@ fn draw_snake(snake: &Snake, window_size: &PhysicalSize<u32>, frame: &mut [u8]) 
     draw_square(
         frame,
         window_size,
-        (snake.coords[0] * TILE_SIZE as u32),
-        (snake.coords[1] * TILE_SIZE as u32),
+        snake.coords[0] * TILE_SIZE as u32,
+        snake.coords[1] * TILE_SIZE as u32,
         TILE_SIZE,
         TILE_SIZE,
         PURPLE1,
     );
+    for i in snake.history.iter() {
+        draw_square(
+            frame,
+            window_size,
+            i[0] * TILE_SIZE as u32,
+            i[1] * TILE_SIZE as u32,
+            TILE_SIZE,
+            TILE_SIZE,
+            PURPLE1,
+        );
+    }
 }
